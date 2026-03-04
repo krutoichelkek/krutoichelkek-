@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ВІКТОРІЯ — 21 РІК ХАОСУ! 🐎🐸🤡</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background: #000;
+            font-family: 'Arial Black', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden; text-align: center; color: white;
+            transition: background 1s;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 50px; border: 8px solid white;
+            max-width: 85%; z-index: 10; position: relative;
+        }
+
+        #mode-indicator {
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            background: #ff007a; padding: 5px 20px; border-radius: 20px;
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        h1 { font-size: 3rem; min-height: 150px; display: flex; align-items: center; justify-content: center; }
+
+        .btn-start {
+            background: white; color: black; border: none; padding: 25px 50px;
+            font-size: 2rem; font-weight: 900; border-radius: 100px; cursor: pointer;
+        }
+
+        .emoji { position: absolute; font-size: 50px; animation: floatUp 3s linear infinite; bottom: -100px; }
+        @keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-120vh) rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="mode-indicator" style="display: none;">РЕЖИМ: ОЧІКУВАННЯ</div>
+        <h1 id="dynamic-title">ВІКТОРІЯ! 🎂</h1>
+        <p id="sub-text" style="font-size: 1.2rem; margin-bottom: 20px;">ПРИГОТУЙСЯ, ЗВУК БУДЕ ЗМІНЮВАТИСЬ! 🔊</p>
+        <button class="btn-start" id="mainBtn" onclick="igniteCelebration()">ПОЧАТИ МАГІЮ ✨</button>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let currentMode = 0; // 0: Кінь, 1: Жаба, 2: Мультик, 3: Голос
+
+        const phrases = [
+            "ШО ТИ ГОЛОВА? 😎", "ЯК ЗДОРОВЛЯ? 🍵", "НУ ТИ Й КРІНЖ 😂",
+            "ТОБІ 21 РОКІВ, ОГО! 🎈", "ВІТАЮ РІДНЕНЬКА ❤️", "БАРАБОЛЯ 🥔",
+            "ТИ ЗІРОЧКА ✨", "ПРИЇЗДИ 🚗", "SISTER ^0^ 👯‍♀️", "СВЯТО СВЯТО СВЯТО 🎊"
+        ];
+
+        const modes = ["КІНЬ 🐎", "ЖАБА 🐸", "МУЛЬТИКИ 🤡", "ГОЛОС 🗣️"];
+        const colors = ["#8b4513", "#2ecc71", "#7000ff", "#ff007a"];
+
+        // --- ГЕНЕРАТОРИ ЗВУКІВ ---
+        function playHorse() {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = 'sawtooth';
+            o.frequency.setValueAtTime(200, audioCtx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+            o.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.5);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playFrog() {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = 'square';
+            o.frequency.setValueAtTime(150, audioCtx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + 0.2);
+        }
+
+        function playCartoon() {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = 'sine';
+            o.frequency.setValueAtTime(100, audioCtx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.3);
+            g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function speak(text) {
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'uk-UA';
+            u.pitch = 1.5;
+            u.rate = 1.2;
+            window.speechSynthesis.speak(u);
+        }
+
+        // --- ЛОГІКА ---
+        function igniteCelebration() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            document.getElementById('mainBtn').style.display = 'none';
+            document.getElementById('sub-text').style.display = 'none';
+            const indicator = document.getElementById('mode-indicator');
+            indicator.style.display = 'block';
+
+            // Таймер зміни РЕЖИМІВ (кожні 5 секунд)
+            setInterval(() => {
+                currentMode = (currentMode + 1) % modes.length;
+                indicator.innerText = "РЕЖИМ: " + modes[currentMode];
+                indicator.style.background = colors[currentMode];
+                document.body.style.background = colors[currentMode];
+            }, 5000);
+
+            // Таймер зміни ФРАЗ (кожна 1 секунда)
+            let i = 0;
+            setInterval(() => {
+                const text = phrases[i];
+                document.getElementById('dynamic-title').innerText = text;
+
+                // Граємо звук відповідно до поточного режиму
+                if (currentMode === 0) playHorse();
+                if (currentMode === 1) playFrog();
+                if (currentMode === 2) playCartoon();
+                if (currentMode === 3) speak(text);
+
+                i = (i + 1) % phrases.length;
+                confetti({ particleCount: 10, origin: { x: Math.random(), y: 0.8 } });
+            }, 1000);
+
+            // Початковий салют
+            confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+        }
+
+        // Фоновий декор
+        setInterval(() => {
+            const e = document.createElement('div');
+            e.className = 'emoji';
+            const icons = ['🐎', '🐸', '🤡', '🥔', '✨', '🎂'];
+            e.innerText = icons[Math.floor(Math.random() * icons.length)];
+            e.style.left = Math.random() * 100 + 'vw';
+            document.body.appendChild(e);
+            setTimeout(() => e.remove(), 3000);
+        }, 400);
+    </script>
+</body>
+</html>
